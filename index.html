@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poolish Pizza Rechner</title>
+    <style>
+        :root { --bg: #1e1e1e; --card: #2d2d2d; --text: #e0e0e0; --accent: #4caf50; --danger: #ff5252; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1, h2, h3 { color: var(--accent); }
+        .card { background-color: var(--card); padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        label { display: block; font-size: 0.9em; margin-bottom: 5px; color: #aaa; }
+        input, select { width: 100%; padding: 10px; background: #3d3d3d; border: 1px solid #555; color: white; border-radius: 4px; box-sizing: border-box; }
+        input:focus { border-color: var(--accent); outline: none; }
+        .result-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #444; }
+        .result-row:last-child { border-bottom: none; }
+        .highlight { font-weight: bold; color: var(--accent); }
+        .step-time { font-family: monospace; background: #444; padding: 2px 6px; border-radius: 4px; margin-right: 10px; color: #fff; }
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 10px; }
+        .btn:hover { opacity: 0.9; }
+        .note { font-size: 0.85em; color: #888; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🍕 Poolish Master Calculator</h1>
+    
+    <div class="card">
+        <h2>1. Konfiguration</h2>
+        <div class="grid">
+            <div>
+                <label>Anzahl Ballen</label>
+                <input type="number" id="balls" value="13" oninput="calculate()">
+            </div>
+            <div>
+                <label>Gewicht pro Ballen (g)</label>
+                <input type="number" id="weight" value="290" oninput="calculate()">
+            </div>
+            <div>
+                <label>Vollkorn-Anteil (%)</label>
+                <input type="number" id="wholeWheat" value="10" oninput="calculate()">
+            </div>
+            <div>
+                <label>Raumtemperatur (°C)</label>
+                <input type="number" id="roomTemp" value="21" oninput="calculate()">
+            </div>
+        </div>
+        <br>
+        <div class="grid">
+            <div>
+                <label>Wann willst du essen? (Datum)</label>
+                <input type="date" id="targetDate" onchange="calculate()">
+            </div>
+            <div>
+                <label>Uhrzeit (Backen)</label>
+                <input type="time" id="targetTime" value="15:00" onchange="calculate()">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>2. Einkaufsliste & Rezept</h2>
+        <div id="ingredientsList"></div>
+    </div>
+
+    <div class="card">
+        <h2>3. Der Zeitplan (Rückwärts gerechnet)</h2>
+        <div id="scheduleList"></div>
+    </div>
+</div>
+
+<script>
+    // Initialisiere Datum auf "Morgen"
+    const tmr = new Date();
+    tmr.setDate(tmr.getDate() + 1);
+    document.getElementById('targetDate').valueAsDate = tmr;
+
+    function calculate() {
+        // --- INPUTS ---
+        const balls = parseFloat(document.getElementById('balls').value);
+        const weight = parseFloat(document.getElementById('weight').value);
+        const wwPercent = parseFloat(document.getElementById('wholeWheat').value);
+        const roomTemp = parseFloat(document.getElementById('roomTemp').value);
+        
+        const targetDateStr = document.getElementById('targetDate').value;
+        const targetTimeStr = document.getElementById('targetTime').value;
+
+        if(!balls || !weight || !targetDateStr || !targetTimeStr) return;
+
+        // --- KONSTANTEN (Dein Erfolgsrezept) ---
+        const hydration = 0.65;
+        const saltPct = 0.03;
+        // Hefe-Logik: Wir nutzen ca 0.53% Frischhefe als Basis, 
+        // passen aber die Poolish-Reifezeit an die Temperatur an, nicht die Hefemenge (sicherer).
+        const yeastPct = 0.0053; 
+        const poolishFlourPct = 0.25;
+
+        // --- TEIG BERECHNUNG ---
+        const totalDough = balls * weight;
+        const totalFlour = totalDough / (1 + hydration + saltPct + yeastPct);
+        
+        const totalWater = totalFlour * hydration;
+        const totalSalt = totalFlour * saltPct;
+        const totalYeast = totalFlour * yeastPct;
+
+        // Poolish (25% vom Mehl, 100% Hydration für Poolish-Teil)
+        const pFlour = totalFlour * poolishFlourPct; // Nur Tipo 00
+        const pWater = pFlour; // 1:1
+        const pYeast = totalYeast; // Alles in den Poolish
+
+        // Hauptteig Rest
+        const mFlourTotal = totalFlour - pFlour;
+        const mFlourWW = totalFlour * (wwPercent / 100);
+        const mFlour00 = mFlourTotal - mFlourWW;
+        const mWater = totalWater - pWater;
+
+        // --- TIMING LOGIK ---
+        // Zielzeitpunkt
+        const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
+
+        // 1. Raus aus Kühlschrank (Akklimatisieren)
+        // Faustformel: Bei 20°C ca 3.5h. Bei wärmer kürzer.
+        const hoursOut = 3.5; 
+        const takeOutTime = new Date(eatTime.getTime() - (hoursOut * 60 * 60 * 1000));
+
+        // 2. In den Kühlschrank (Gestern Abend)
+        // Wir nehmen an, der Teig war über Nacht drin. 
+        // Ideal: Teig machen ca 18-24h vor dem Backen.
+        // Wir setzen "Teig fertig kneten" auf den Vorabend ca 17:30 (variabel, aber fixieren wir mal relativ zum Essen)
+        // Besser: Wir rechnen vom Poolish Start vorwärts oder vom Essen weit rückwärts.
+        // Deine Präferenz: "Poolish Nachmittags ansetzen".
+        // Also: Hauptteig Kneten = Vorabend ca 20-22h vor Essen.
+        const kneadTime = new Date(eatTime.getTime() - (21.5 * 60 * 60 * 1000)); // Ca 17:30 am Vortag bei 15:00 Essen
+
+        // 3. Poolish ansetzen
+        // Reifezeit Poolish hängt von Raumtemperatur ab!
+        // Standard: 3h bei 21°C. 
+        // Formel: Zeit = 3 * (21 / Temp) (grobe Annäherung für kleine Delta T)
+        let poolishHours = 3 * (21 / roomTemp);
+        if(poolishHours < 1.5) poolishHours = 1.5; // Minimum
+
+        const poolishStartTime = new Date(kneadTime.getTime() - (poolishHours * 60 * 60 * 1000));
+
+        // --- RENDER ZUTATEN ---
+        const format = (num) => num.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+        
+        let htmlIng = `
+            <div class="result-row"><span>Gesamtteig:</span> <span class="highlight">${format(totalDough)} g</span></div>
+            <hr style="border-color:#444">
+            <h4>1. Der Poolish (Ansatz)</h4>
+            <div class="result-row"><span>Mehl (Tipo 00):</span> <span>${format(pFlour)} g</span></div>
+            <div class="result-row"><span>Wasser (Lauwarm, ~27°C):</span> <span>${format(pWater)} ml</span></div>
+            <div class="result-row"><span>Hefe (Frisch):</span> <span class="highlight">${format(pYeast)} g</span></div>
+            <div class="note">(Oder ${format(pYeast/3)}g Trockenhefe)</div>
+            
+            <h4 style="margin-top:15px">2. Der Hauptteig (Finale)</h4>
+            <div class="result-row"><span>Poolish:</span> <span>Alles von oben</span></div>
+            <div class="result-row"><span>Mehl (Tipo 00):</span> <span>${format(mFlour00)} g</span></div>
+            ${wwPercent > 0 ? `<div class="result-row"><span>Mehl (Vollkorn):</span> <span>${format(mFlourWW)} g</span></div>` : ''}
+            <div class="result-row"><span>Wasser (Eiskalt, 4-6°C):</span> <span class="highlight">${format(mWater)} ml</span></div>
+            <div class="result-row"><span>Salz:</span> <span>${format(totalSalt)} g</span></div>
+        `;
+        document.getElementById('ingredientsList').innerHTML = htmlIng;
+
+        // --- RENDER TIMELINE ---
+        const timeOpt = { weekday: 'short', hour: '2-digit', minute: '2-digit' };
+        
+        let htmlTime = `
+            <div class="result-row">
+                <span class="step-time">${poolishStartTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Poolish ansetzen:</strong> Zutaten mischen (wie Pfannkuchenteig), abgedeckt bei RT stehen lassen.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Hauptteig kneten:</strong> Poolish + Mehl + kaltes Wasser + Salz. Glatt kneten (23-24°C Ziel).</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 20 min</span>
+                <span><strong>Ruhe & Ballen:</strong> 20 min ruhen lassen, dann Kugeln formen (${format(weight)}g).</span>
+            </div>
+             <div class="result-row">
+                <span class="step-time">Sofort</span>
+                <span><strong>Ab in die Kühlung:</strong> Luftdicht verpackt in den Kühlschrank.</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">... Schlafen ...</span>
+                <span>Kalte Gare (Cold Fermentation)</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${takeOutTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Rausholen:</strong> Box auf die Arbeitsplatte stellen (Raumtemp). Nicht öffnen!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${eatTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Backen:</strong> Ofen heiß, Teigling in Semola wenden, belegen & genießen.</span>
+            </div>
+        `;
+        document.getElementById('scheduleList').innerHTML = htmlTime;
+    }
+
+    // Initiale Berechnung
+    calculate();
+</script>
+
+</body>
+</html>
