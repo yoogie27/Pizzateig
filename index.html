@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poolish Pizza Rechner</title>
+    <title>Pizza Teig Rechner</title>
     <style>
-        :root { --bg: #1e1e1e; --card: #2d2d2d; --text: #e0e0e0; --accent: #4caf50; --danger: #ff5252; }
+        :root { --bg: #1e1e1e; --card: #2d2d2d; --text: #e0e0e0; --accent: #4caf50; --danger: #ff5252; --biga: #ff9800; --roma: #e91e63; --quick: #2196f3; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
         .container { max-width: 800px; margin: 0 auto; }
         h1, h2, h3 { color: var(--accent); }
@@ -21,13 +21,68 @@
         .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 10px; }
         .btn:hover { opacity: 0.9; }
         .note { font-size: 0.85em; color: #888; margin-top: 5px; }
+
+        /* Rezept-Tabs */
+        .recipe-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+        .recipe-tab {
+            padding: 12px 16px;
+            border: 2px solid #555;
+            background: transparent;
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+        .recipe-tab:hover { border-color: #888; }
+        .recipe-tab.active { border-color: var(--accent); background: rgba(76, 175, 80, 0.15); }
+        .recipe-tab[data-recipe="biga"].active { border-color: var(--biga); background: rgba(255, 152, 0, 0.15); }
+        .recipe-tab[data-recipe="roma"].active { border-color: var(--roma); background: rgba(233, 30, 99, 0.15); }
+        .recipe-tab[data-recipe="quick"].active { border-color: var(--quick); background: rgba(33, 150, 243, 0.15); }
+
+        .recipe-desc {
+            font-size: 0.85em;
+            color: #888;
+            padding: 12px;
+            background: #252525;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent);
+        }
+        .recipe-desc.biga { border-left-color: var(--biga); }
+        .recipe-desc.roma { border-left-color: var(--roma); }
+        .recipe-desc.quick { border-left-color: var(--quick); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🍕 Poolish Master Calculator</h1>
-    
+    <h1>🍕 Pizza Teig Master Calculator</h1>
+
+    <div class="card">
+        <h2>0. Welchen Teig willst du?</h2>
+        <div class="recipe-tabs">
+            <button class="recipe-tab active" data-recipe="poolish" onclick="setRecipe('poolish')">
+                🌊 Poolish<br><small>Der Klassiker</small>
+            </button>
+            <button class="recipe-tab" data-recipe="biga" onclick="setRecipe('biga')">
+                🍞 Biga<br><small>Intensiv & aromatisch</small>
+            </button>
+            <button class="recipe-tab" data-recipe="roma" onclick="setRecipe('roma')">
+                🏛️ Römisch<br><small>Knusprig & luftig</small>
+            </button>
+            <button class="recipe-tab" data-recipe="quick" onclick="setRecipe('quick')">
+                ⚡ Schnell<br><small>Wenig Zeit?</small>
+            </button>
+        </div>
+        <div id="recipeDesc" class="recipe-desc">
+            <strong>Poolish:</strong> Flüssiger Vorteig (100% Hydration). 3-4h Vorteig + Übernacht-Gare. Der Standard für aromatische, gut verdauliche Pizza.
+        </div>
+    </div>
+
     <div class="card">
         <h2>1. Konfiguration</h2>
         <div class="grid">
@@ -73,6 +128,31 @@
 </div>
 
 <script>
+    // Aktuelles Rezept
+    let currentRecipe = 'poolish';
+
+    // Rezept-Beschreibungen
+    const recipeDescriptions = {
+        poolish: '<strong>Poolish:</strong> Flüssiger Vorteig (100% Hydration). 3-4h Vorteig + Übernacht-Gare. Der Standard für aromatische, gut verdauliche Pizza.',
+        biga: '<strong>Biga:</strong> Fester Vorteig (50% Hydration). 12-16h Reifezeit. Noch mehr Aroma und Komplexität. Perfekt wenn du am Vorabend schon Zeit hast.',
+        roma: '<strong>Römischer Teig:</strong> Hohe Hydration (75%), lange Gare. Ergibt knusprige, luftige Pizza alla Romana / Pinsa-Style. Braucht Übung beim Formen!',
+        quick: '<strong>Schnell-Teig:</strong> Direktteig ohne Vorteig. In 4-6h fertig. Für spontane Pizza-Gelüste. Weniger komplex im Geschmack, aber trotzdem lecker!'
+    };
+
+    function setRecipe(recipe) {
+        currentRecipe = recipe;
+        // Update Tabs
+        document.querySelectorAll('.recipe-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.recipe === recipe);
+        });
+        // Update Beschreibung
+        const descEl = document.getElementById('recipeDesc');
+        descEl.innerHTML = recipeDescriptions[recipe];
+        descEl.className = 'recipe-desc ' + recipe;
+        // Neuberechnung
+        calculate();
+    }
+
     // Initialisiere Datum auf "Morgen"
     const tmr = new Date();
     tmr.setDate(tmr.getDate() + 1);
@@ -84,32 +164,55 @@
         const weight = parseFloat(document.getElementById('weight').value);
         const wwPercent = parseFloat(document.getElementById('wholeWheat').value);
         const roomTemp = parseFloat(document.getElementById('roomTemp').value);
-        
+
         const targetDateStr = document.getElementById('targetDate').value;
         const targetTimeStr = document.getElementById('targetTime').value;
 
         if(!balls || !weight || !targetDateStr || !targetTimeStr) return;
 
+        // Je nach Rezept verschiedene Berechnungen
+        switch(currentRecipe) {
+            case 'poolish':
+                calculatePoolish(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
+                break;
+            case 'biga':
+                calculateBiga(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
+                break;
+            case 'roma':
+                calculateRoma(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
+                break;
+            case 'quick':
+                calculateQuick(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
+                break;
+        }
+    }
+
+    // Hilfsfunktionen
+    const format = (num) => num.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+    const timeOpt = { weekday: 'short', hour: '2-digit', minute: '2-digit' };
+
+    // ==========================================
+    // POOLISH - Das Original
+    // ==========================================
+    function calculatePoolish(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr) {
         // --- KONSTANTEN (Dein Erfolgsrezept) ---
         const hydration = 0.65;
         const saltPct = 0.03;
-        // Hefe-Logik: Wir nutzen ca 0.53% Frischhefe als Basis, 
-        // passen aber die Poolish-Reifezeit an die Temperatur an, nicht die Hefemenge (sicherer).
-        const yeastPct = 0.0053; 
+        const yeastPct = 0.0053;
         const poolishFlourPct = 0.25;
 
         // --- TEIG BERECHNUNG ---
         const totalDough = balls * weight;
         const totalFlour = totalDough / (1 + hydration + saltPct + yeastPct);
-        
+
         const totalWater = totalFlour * hydration;
         const totalSalt = totalFlour * saltPct;
         const totalYeast = totalFlour * yeastPct;
 
         // Poolish (25% vom Mehl, 100% Hydration für Poolish-Teil)
-        const pFlour = totalFlour * poolishFlourPct; // Nur Tipo 00
-        const pWater = pFlour; // 1:1
-        const pYeast = totalYeast; // Alles in den Poolish
+        const pFlour = totalFlour * poolishFlourPct;
+        const pWater = pFlour;
+        const pYeast = totalYeast;
 
         // Hauptteig Rest
         const mFlourTotal = totalFlour - pFlour;
@@ -117,36 +220,17 @@
         const mFlour00 = mFlourTotal - mFlourWW;
         const mWater = totalWater - pWater;
 
-        // --- TIMING LOGIK ---
-        // Zielzeitpunkt
+        // --- TIMING ---
         const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
-
-        // 1. Raus aus Kühlschrank (Akklimatisieren)
-        // Faustformel: Bei 20°C ca 3.5h. Bei wärmer kürzer.
-        const hoursOut = 3.5; 
+        const hoursOut = 3.5;
         const takeOutTime = new Date(eatTime.getTime() - (hoursOut * 60 * 60 * 1000));
+        const kneadTime = new Date(eatTime.getTime() - (21.5 * 60 * 60 * 1000));
 
-        // 2. In den Kühlschrank (Gestern Abend)
-        // Wir nehmen an, der Teig war über Nacht drin. 
-        // Ideal: Teig machen ca 18-24h vor dem Backen.
-        // Wir setzen "Teig fertig kneten" auf den Vorabend ca 17:30 (variabel, aber fixieren wir mal relativ zum Essen)
-        // Besser: Wir rechnen vom Poolish Start vorwärts oder vom Essen weit rückwärts.
-        // Deine Präferenz: "Poolish Nachmittags ansetzen".
-        // Also: Hauptteig Kneten = Vorabend ca 20-22h vor Essen.
-        const kneadTime = new Date(eatTime.getTime() - (21.5 * 60 * 60 * 1000)); // Ca 17:30 am Vortag bei 15:00 Essen
-
-        // 3. Poolish ansetzen
-        // Reifezeit Poolish hängt von Raumtemperatur ab!
-        // Standard: 3h bei 21°C. 
-        // Formel: Zeit = 3 * (21 / Temp) (grobe Annäherung für kleine Delta T)
         let poolishHours = 3 * (21 / roomTemp);
-        if(poolishHours < 1.5) poolishHours = 1.5; // Minimum
-
+        if(poolishHours < 1.5) poolishHours = 1.5;
         const poolishStartTime = new Date(kneadTime.getTime() - (poolishHours * 60 * 60 * 1000));
 
-        // --- RENDER ZUTATEN ---
-        const format = (num) => num.toLocaleString('de-DE', { maximumFractionDigits: 1 });
-        
+        // --- RENDER ---
         let htmlIng = `
             <div class="result-row"><span>Gesamtteig:</span> <span class="highlight">${format(totalDough)} g</span></div>
             <hr style="border-color:#444">
@@ -155,7 +239,7 @@
             <div class="result-row"><span>Wasser (Lauwarm, ~27°C):</span> <span>${format(pWater)} ml</span></div>
             <div class="result-row"><span>Hefe (Frisch):</span> <span class="highlight">${format(pYeast)} g</span></div>
             <div class="note">(Oder ${format(pYeast/3)}g Trockenhefe)</div>
-            
+
             <h4 style="margin-top:15px">2. Der Hauptteig (Finale)</h4>
             <div class="result-row"><span>Poolish:</span> <span>Alles von oben</span></div>
             <div class="result-row"><span>Mehl (Tipo 00):</span> <span>${format(mFlour00)} g</span></div>
@@ -165,9 +249,6 @@
         `;
         document.getElementById('ingredientsList').innerHTML = htmlIng;
 
-        // --- RENDER TIMELINE ---
-        const timeOpt = { weekday: 'short', hour: '2-digit', minute: '2-digit' };
-        
         let htmlTime = `
             <div class="result-row">
                 <span class="step-time">${poolishStartTime.toLocaleTimeString('de-DE', timeOpt)}</span>
@@ -181,7 +262,7 @@
                 <span class="step-time">+ 20 min</span>
                 <span><strong>Ruhe & Ballen:</strong> 20 min ruhen lassen, dann Kugeln formen (${format(weight)}g).</span>
             </div>
-             <div class="result-row">
+            <div class="result-row">
                 <span class="step-time">Sofort</span>
                 <span><strong>Ab in die Kühlung:</strong> Luftdicht verpackt in den Kühlschrank.</span>
             </div>
@@ -196,6 +277,271 @@
             <div class="result-row">
                 <span class="step-time">${eatTime.toLocaleTimeString('de-DE', timeOpt)}</span>
                 <span><strong>Backen:</strong> Ofen heiß, Teigling in Semola wenden, belegen & genießen.</span>
+            </div>
+        `;
+        document.getElementById('scheduleList').innerHTML = htmlTime;
+    }
+
+    // ==========================================
+    // BIGA - Der Aromatische
+    // ==========================================
+    function calculateBiga(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr) {
+        // Biga: Fester Vorteig mit 50% Hydration, 40% des Mehls
+        const hydration = 0.65;
+        const saltPct = 0.03;
+        const yeastPct = 0.003; // Weniger Hefe wegen längerer Gare
+        const bigaFlourPct = 0.40; // Mehr Mehl im Vorteig
+        const bigaHydration = 0.50; // Fester als Poolish
+
+        const totalDough = balls * weight;
+        const totalFlour = totalDough / (1 + hydration + saltPct + yeastPct);
+
+        const totalWater = totalFlour * hydration;
+        const totalSalt = totalFlour * saltPct;
+        const totalYeast = totalFlour * yeastPct;
+
+        // Biga
+        const bFlour = totalFlour * bigaFlourPct;
+        const bWater = bFlour * bigaHydration;
+        const bYeast = totalYeast; // Alle Hefe in Biga
+
+        // Hauptteig
+        const mFlourTotal = totalFlour - bFlour;
+        const mFlourWW = totalFlour * (wwPercent / 100);
+        const mFlour00 = mFlourTotal - mFlourWW;
+        const mWater = totalWater - bWater;
+
+        // --- TIMING ---
+        const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
+        const hoursOut = 3.5;
+        const takeOutTime = new Date(eatTime.getTime() - (hoursOut * 60 * 60 * 1000));
+        const kneadTime = new Date(eatTime.getTime() - (21 * 60 * 60 * 1000));
+
+        // Biga braucht 12-16h bei Raumtemperatur, oder kürzer bei wärmer
+        let bigaHours = 14 * (21 / roomTemp);
+        if(bigaHours < 8) bigaHours = 8;
+        if(bigaHours > 18) bigaHours = 18;
+        const bigaStartTime = new Date(kneadTime.getTime() - (bigaHours * 60 * 60 * 1000));
+
+        // --- RENDER ---
+        let htmlIng = `
+            <div class="result-row"><span>Gesamtteig:</span> <span class="highlight">${format(totalDough)} g</span></div>
+            <hr style="border-color:#444">
+            <h4>1. Die Biga (Vorteig)</h4>
+            <div class="result-row"><span>Mehl (Tipo 00):</span> <span>${format(bFlour)} g</span></div>
+            <div class="result-row"><span>Wasser (Lauwarm, ~25°C):</span> <span>${format(bWater)} ml</span></div>
+            <div class="result-row"><span>Hefe (Frisch):</span> <span class="highlight">${format(bYeast)} g</span></div>
+            <div class="note">(Oder ${format(bYeast/3)}g Trockenhefe) - Fest kneten bis homogen!</div>
+
+            <h4 style="margin-top:15px">2. Der Hauptteig (Finale)</h4>
+            <div class="result-row"><span>Biga:</span> <span>Alles von oben (in Stücke reißen)</span></div>
+            <div class="result-row"><span>Mehl (Tipo 00):</span> <span>${format(mFlour00)} g</span></div>
+            ${wwPercent > 0 ? `<div class="result-row"><span>Mehl (Vollkorn):</span> <span>${format(mFlourWW)} g</span></div>` : ''}
+            <div class="result-row"><span>Wasser (Kalt, 10-12°C):</span> <span class="highlight">${format(mWater)} ml</span></div>
+            <div class="result-row"><span>Salz:</span> <span>${format(totalSalt)} g</span></div>
+        `;
+        document.getElementById('ingredientsList').innerHTML = htmlIng;
+
+        let htmlTime = `
+            <div class="result-row">
+                <span class="step-time">${bigaStartTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Biga ansetzen:</strong> Zutaten zu einem festen Teig kneten (~5min). In Schüssel abgedeckt bei RT.</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">~${format(bigaHours)}h</span>
+                <span>Biga reift bei Raumtemperatur (verdoppelt sich, mit Blasen)</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Hauptteig kneten:</strong> Biga zerreißen, mit restlichen Zutaten mischen. Länger kneten (10-15min)!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 30 min</span>
+                <span><strong>Ruhe & Ballen:</strong> 30 min Teigruhe, dann Kugeln formen (${format(weight)}g).</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">Sofort</span>
+                <span><strong>Ab in die Kühlung:</strong> Luftdicht in den Kühlschrank.</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">... Schlafen ...</span>
+                <span>Kalte Gare - Biga-Teig entwickelt mega Aromen!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${takeOutTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Rausholen:</strong> Box raus, akklimatisieren lassen.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${eatTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Backen:</strong> Genießen! Biga = Nussig, komplex, mega Kruste.</span>
+            </div>
+        `;
+        document.getElementById('scheduleList').innerHTML = htmlTime;
+    }
+
+    // ==========================================
+    // RÖMISCH - Der Knusprige
+    // ==========================================
+    function calculateRoma(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr) {
+        // Römischer Teig: Hohe Hydration, langer Gare
+        const hydration = 0.75; // Viel Wasser!
+        const saltPct = 0.028;
+        const yeastPct = 0.002; // Sehr wenig Hefe
+        const oliveoilPct = 0.03; // Olivenöl für Geschmeidigkeit
+
+        const totalDough = balls * weight;
+        const totalFlour = totalDough / (1 + hydration + saltPct + yeastPct + oliveoilPct);
+
+        const totalWater = totalFlour * hydration;
+        const totalSalt = totalFlour * saltPct;
+        const totalYeast = totalFlour * yeastPct;
+        const totalOil = totalFlour * oliveoilPct;
+
+        const mFlourWW = totalFlour * (wwPercent / 100);
+        const mFlour00 = totalFlour - mFlourWW;
+
+        // --- TIMING ---
+        const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
+        const hoursOut = 4; // Längere Akklimatisierung wegen hoher Hydration
+        const takeOutTime = new Date(eatTime.getTime() - (hoursOut * 60 * 60 * 1000));
+
+        // Kalte Gare: 24-48h ideal
+        const coldFermentHours = 26;
+        const kneadTime = new Date(eatTime.getTime() - (coldFermentHours * 60 * 60 * 1000));
+
+        // Autolyse vorher
+        const autolyseTime = new Date(kneadTime.getTime() - (1 * 60 * 60 * 1000));
+
+        // --- RENDER ---
+        let htmlIng = `
+            <div class="result-row"><span>Gesamtteig:</span> <span class="highlight">${format(totalDough)} g</span></div>
+            <div class="result-row"><span>Hydration:</span> <span class="highlight">75% - Nasser Teig!</span></div>
+            <hr style="border-color:#444">
+            <h4>Zutaten (Alles zusammen)</h4>
+            <div class="result-row"><span>Mehl (Tipo 00 oder Manitoba):</span> <span>${format(mFlour00)} g</span></div>
+            ${wwPercent > 0 ? `<div class="result-row"><span>Mehl (Vollkorn):</span> <span>${format(mFlourWW)} g</span></div>` : ''}
+            <div class="result-row"><span>Wasser (Kalt, 8-10°C):</span> <span class="highlight">${format(totalWater)} ml</span></div>
+            <div class="result-row"><span>Salz:</span> <span>${format(totalSalt)} g</span></div>
+            <div class="result-row"><span>Hefe (Frisch):</span> <span class="highlight">${format(totalYeast)} g</span></div>
+            <div class="note">(Oder ${format(totalYeast/3)}g Trockenhefe)</div>
+            <div class="result-row"><span>Olivenöl (Extra Vergine):</span> <span>${format(totalOil)} g</span></div>
+            <div class="note" style="margin-top:10px; color: #e91e63;">Tipp: Bei so hoher Hydration Manitoba-Mehl (W350+) verwenden!</div>
+        `;
+        document.getElementById('ingredientsList').innerHTML = htmlIng;
+
+        let htmlTime = `
+            <div class="result-row">
+                <span class="step-time">${autolyseTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Autolyse:</strong> Mehl + 90% Wasser mischen, 1h ruhen lassen (kein Salz, keine Hefe!).</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Teig fertigstellen:</strong> Hefe einarbeiten, dann Salz, dann restl. Wasser schluckweise. Stretch & Fold!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 30 min</span>
+                <span><strong>1. Stretch & Fold:</strong> Teig von allen Seiten zur Mitte falten.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 30 min</span>
+                <span><strong>2. Stretch & Fold:</strong> Wiederholen. Teig wird fester.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 30 min</span>
+                <span><strong>Öl & Ballen:</strong> Olivenöl einarbeiten, dann vorsichtig Ballen formen (${format(weight)}g). Nasse Hände!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">Sofort</span>
+                <span><strong>Ab in die Kühlung:</strong> In geölte Box, viel Platz lassen!</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">~24h</span>
+                <span>Lange kalte Gare - Teig wird mega luftig</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${takeOutTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Rausholen:</strong> Länger akklimatisieren! Nasser Teig braucht Zeit.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${eatTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Backen:</strong> Vorsichtig formen (nicht entgasen!), in Semola, maximal heiß backen.</span>
+            </div>
+        `;
+        document.getElementById('scheduleList').innerHTML = htmlTime;
+    }
+
+    // ==========================================
+    // QUICK - Der Schnelle
+    // ==========================================
+    function calculateQuick(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr) {
+        // Schnellteig: Direktteig, mehr Hefe, kürzere Gare
+        const hydration = 0.62;
+        const saltPct = 0.025;
+        const yeastPct = 0.015; // Viel mehr Hefe!
+        const sugarPct = 0.01; // Etwas Zucker beschleunigt
+
+        const totalDough = balls * weight;
+        const totalFlour = totalDough / (1 + hydration + saltPct + yeastPct + sugarPct);
+
+        const totalWater = totalFlour * hydration;
+        const totalSalt = totalFlour * saltPct;
+        const totalYeast = totalFlour * yeastPct;
+        const totalSugar = totalFlour * sugarPct;
+
+        const mFlourWW = totalFlour * (wwPercent / 100);
+        const mFlour00 = totalFlour - mFlourWW;
+
+        // --- TIMING ---
+        const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
+
+        // Schnelle Gare: 3-5h bei Raumtemperatur
+        let gareHours = 4 * (21 / roomTemp);
+        if(gareHours < 2.5) gareHours = 2.5;
+        if(gareHours > 6) gareHours = 6;
+
+        const kneadTime = new Date(eatTime.getTime() - ((gareHours + 1) * 60 * 60 * 1000)); // +1h für Formen etc
+        const ballTime = new Date(kneadTime.getTime() + (0.5 * 60 * 60 * 1000)); // Nach 30min Ruhe
+
+        // --- RENDER ---
+        let htmlIng = `
+            <div class="result-row"><span>Gesamtteig:</span> <span class="highlight">${format(totalDough)} g</span></div>
+            <div class="result-row" style="color: #2196f3;"><span>Gesamtzeit:</span> <span class="highlight">~${format(gareHours + 1)}h</span></div>
+            <hr style="border-color:#444">
+            <h4>Zutaten (Alles zusammen)</h4>
+            <div class="result-row"><span>Mehl (Tipo 00):</span> <span>${format(mFlour00)} g</span></div>
+            ${wwPercent > 0 ? `<div class="result-row"><span>Mehl (Vollkorn):</span> <span>${format(mFlourWW)} g</span></div>` : ''}
+            <div class="result-row"><span>Wasser (Lauwarm, 30-32°C):</span> <span class="highlight">${format(totalWater)} ml</span></div>
+            <div class="result-row"><span>Hefe (Frisch):</span> <span class="highlight">${format(totalYeast)} g</span></div>
+            <div class="note">(Oder ${format(totalYeast/3)}g Trockenhefe)</div>
+            <div class="result-row"><span>Zucker:</span> <span>${format(totalSugar)} g</span></div>
+            <div class="result-row"><span>Salz:</span> <span>${format(totalSalt)} g</span></div>
+            <div class="note" style="margin-top:10px; color: #2196f3;">Wichtig: Warmes Wasser & warmer Ort beschleunigen die Gare!</div>
+        `;
+        document.getElementById('ingredientsList').innerHTML = htmlIng;
+
+        let htmlTime = `
+            <div class="result-row">
+                <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Teig kneten:</strong> Hefe in warmem Wasser + Zucker auflösen, dann Mehl & Salz. Gut kneten (10min)!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 30 min</span>
+                <span><strong>Ruhe:</strong> Abgedeckt an warmem Ort (z.B. Ofen mit Licht an).</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${ballTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Ballen formen:</strong> Kugeln formen (${format(weight)}g), auf eingeöltem Blech/Box.</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">~${format(gareHours)}h</span>
+                <span>Warme Gare bei Raumtemperatur (Teig verdoppelt sich)</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${eatTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Backen:</strong> Direkt formen und ab in den heißen Ofen!</span>
+            </div>
+            <div class="note" style="margin-top:15px; padding: 10px; background: #2a3a4a; border-radius: 6px;">
+                <strong>Tipp für mehr Geschmack:</strong> 1 EL Olivenöl und 1 TL Honig dazu = bessere Kruste!
             </div>
         `;
         document.getElementById('scheduleList').innerHTML = htmlTime;
