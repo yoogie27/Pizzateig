@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pizza Teig Rechner</title>
     <style>
-        :root { --bg: #1e1e1e; --card: #2d2d2d; --text: #e0e0e0; --accent: #4caf50; --danger: #ff5252; --biga: #ff9800; --roma: #e91e63; --quick: #2196f3; --crispy: #ffc107; }
+        :root { --bg: #1e1e1e; --card: #2d2d2d; --text: #e0e0e0; --accent: #4caf50; --danger: #ff5252; --biga: #ff9800; --roma: #e91e63; --quick: #2196f3; --crispy: #ffc107; --sourdough: #9c27b0; --semola: #8d6e63; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
         .container { max-width: 800px; margin: 0 auto; }
         h1, h2, h3 { color: var(--accent); }
@@ -43,6 +43,8 @@
         .recipe-tab[data-recipe="roma"].active { border-color: var(--roma); background: rgba(233, 30, 99, 0.15); }
         .recipe-tab[data-recipe="quick"].active { border-color: var(--quick); background: rgba(33, 150, 243, 0.15); }
         .recipe-tab[data-recipe="crispy"].active { border-color: var(--crispy); background: rgba(255, 193, 7, 0.15); }
+        .recipe-tab[data-recipe="sourdough"].active { border-color: var(--sourdough); background: rgba(156, 39, 176, 0.15); }
+        .recipe-tab[data-recipe="semola"].active { border-color: var(--semola); background: rgba(141, 110, 99, 0.15); }
 
         .recipe-desc {
             font-size: 0.85em;
@@ -57,6 +59,8 @@
         .recipe-desc.roma { border-left-color: var(--roma); }
         .recipe-desc.quick { border-left-color: var(--quick); }
         .recipe-desc.crispy { border-left-color: var(--crispy); }
+        .recipe-desc.sourdough { border-left-color: var(--sourdough); }
+        .recipe-desc.semola { border-left-color: var(--semola); }
     </style>
 </head>
 <body>
@@ -81,6 +85,12 @@
             </button>
             <button class="recipe-tab" data-recipe="crispy" onclick="setRecipe('crispy')">
                 🥨 Croccante<br><small>Extra knusprig</small>
+            </button>
+            <button class="recipe-tab" data-recipe="sourdough" onclick="setRecipe('sourdough')">
+                🫙 Sauerteig<br><small>Lievito Madre</small>
+            </button>
+            <button class="recipe-tab" data-recipe="semola" onclick="setRecipe('semola')">
+                🌾 Grießteig<br><small>Rustikal & nussig</small>
             </button>
         </div>
         <div id="recipeDesc" class="recipe-desc">
@@ -142,7 +152,9 @@
         biga: '<strong>Biga:</strong> Fester Vorteig (50% Hydration). 12-16h Reifezeit. Noch mehr Aroma und Komplexität. Perfekt wenn du am Vorabend schon Zeit hast.',
         roma: '<strong>Römischer Teig:</strong> Hohe Hydration (75%), lange Gare. Ergibt knusprige, luftige Pizza alla Romana / Pinsa-Style. Braucht Übung beim Formen!',
         quick: '<strong>Schnell-Teig:</strong> Direktteig ohne Vorteig. In 4-6h fertig. Für spontane Pizza-Gelüste. Weniger komplex im Geschmack, aber trotzdem lecker!',
-        crispy: '<strong>Croccante:</strong> Niedriger Wasseranteil (55%) + Semola + Olivenöl = mega knuspriger Boden! Perfekt für dünne, crackende Pizza. Dünn ausrollen!'
+        crispy: '<strong>Croccante:</strong> Niedriger Wasseranteil (55%) + Semola + Olivenöl = mega knuspriger Boden! Perfekt für dünne, crackende Pizza. Dünn ausrollen!',
+        sourdough: '<strong>Sauerteig (Lievito Madre):</strong> Keine Hefe, nur Sauerteig! Maximale Bekömmlichkeit, komplexe Aromen, leicht säuerlich. Braucht aktiven Sauerteig & Geduld.',
+        semola: '<strong>Grießteig:</strong> 60% Hartweizengrieß für nussiges Aroma & goldene Farbe. Rustikaler süditalienischer Stil. Etwas fester, sehr aromatisch!'
     };
 
     function setRecipe(recipe) {
@@ -192,6 +204,12 @@
                 break;
             case 'crispy':
                 calculateCrispy(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
+                break;
+            case 'sourdough':
+                calculateSourdough(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
+                break;
+            case 'semola':
+                calculateSemola(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
                 break;
         }
     }
@@ -644,6 +662,207 @@
                 • Ofen auf Maximum (mind. 280°C besser mehr)<br>
                 • Pizza direkt auf heißen Stein/Stahl<br>
                 • Weniger Belag = mehr Knusper
+            </div>
+        `;
+        document.getElementById('scheduleList').innerHTML = htmlTime;
+    }
+
+    // ==========================================
+    // SOURDOUGH - Mit Lievito Madre
+    // ==========================================
+    function calculateSourdough(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr) {
+        // Sauerteig: Kein Hefe, nur Lievito Madre
+        const hydration = 0.65;
+        const saltPct = 0.028;
+        const starterPct = 0.20; // 20% Sauerteig vom Mehlgewicht
+
+        const totalDough = balls * weight;
+        // Sauerteig besteht aus ~50% Mehl + 50% Wasser (100% Hydration)
+        const totalFlour = totalDough / (1 + hydration + saltPct + (starterPct * 0.5));
+
+        const totalWater = totalFlour * hydration;
+        const totalSalt = totalFlour * saltPct;
+        const starterAmount = totalFlour * starterPct;
+
+        // Mehl im Starter abziehen
+        const starterFlour = starterAmount * 0.5;
+        const starterWater = starterAmount * 0.5;
+
+        const mFlourTotal = totalFlour - starterFlour;
+        const mFlourWW = totalFlour * (wwPercent / 100);
+        const mFlour00 = mFlourTotal - mFlourWW;
+        const mWater = totalWater - starterWater;
+
+        // --- TIMING ---
+        const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
+        const hoursOut = 4; // Sauerteig braucht länger zum Akklimatisieren
+        const takeOutTime = new Date(eatTime.getTime() - (hoursOut * 60 * 60 * 1000));
+
+        // Lange kalte Gare: 24-48h
+        const coldFermentHours = 36;
+        const kneadTime = new Date(eatTime.getTime() - (coldFermentHours * 60 * 60 * 1000));
+
+        // Starter auffrischen: 4-6h vorher
+        const refreshHours = 5;
+        const refreshTime = new Date(kneadTime.getTime() - (refreshHours * 60 * 60 * 1000));
+
+        // --- RENDER ---
+        let htmlIng = `
+            <div class="result-row"><span>Gesamtteig:</span> <span class="highlight">${format(totalDough)} g</span></div>
+            <div class="result-row" style="color: #9c27b0;"><span>Triebmittel:</span> <span class="highlight">Nur Sauerteig!</span></div>
+            <hr style="border-color:#444">
+            <h4>1. Sauerteig auffrischen (vorher!)</h4>
+            <div class="result-row"><span>Lievito Madre (aktiv):</span> <span class="highlight">${format(starterAmount)} g</span></div>
+            <div class="note">Muss am Peak sein - verdoppelt, mit Blasen, angenehm säuerlich!</div>
+
+            <h4 style="margin-top:15px">2. Hauptteig</h4>
+            <div class="result-row"><span>Mehl (Tipo 00 / Tipo 1):</span> <span>${format(mFlour00)} g</span></div>
+            ${wwPercent > 0 ? `<div class="result-row"><span>Mehl (Vollkorn):</span> <span>${format(mFlourWW)} g</span></div>` : ''}
+            <div class="result-row"><span>Wasser (Lauwarm, 28-30°C):</span> <span class="highlight">${format(mWater)} ml</span></div>
+            <div class="result-row"><span>Salz:</span> <span>${format(totalSalt)} g</span></div>
+            <div class="note" style="margin-top:10px; color: #9c27b0; padding: 8px; background: #2d2035; border-radius: 4px;">
+                <strong>Wichtig:</strong> Sauerteig muss aktiv & fit sein! Am besten 2x auffrischen in den 24h davor.
+            </div>
+        `;
+        document.getElementById('ingredientsList').innerHTML = htmlIng;
+
+        let htmlTime = `
+            <div class="result-row">
+                <span class="step-time">${refreshTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Sauerteig auffrischen:</strong> Lievito Madre füttern (1:1:1), warm stellen bis Peak.</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">~${refreshHours}h</span>
+                <span>Starter erreicht Peak (verdoppelt, gewölbt, Blasen)</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Teig kneten:</strong> Starter + Mehl + Wasser mischen. 20min ruhen (Autolyse), dann Salz + kneten.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 30 min</span>
+                <span><strong>1. Stretch & Fold:</strong> Sanft dehnen und falten.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 30 min</span>
+                <span><strong>2. Stretch & Fold:</strong> Wiederholen - Teig wird stärker.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 1h</span>
+                <span><strong>Ballen formen:</strong> Wenn Teig ~30% gewachsen, Ballen formen (${format(weight)}g).</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">Sofort</span>
+                <span><strong>Ab in die Kühlung:</strong> Sofort in Kühlschrank (4-6°C).</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">~${coldFermentHours}h</span>
+                <span>Langsame kalte Gare - Sauerteig arbeitet langsam aber gründlich!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${takeOutTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Rausholen:</strong> Länger akklimatisieren - Sauerteig braucht Wärme.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${eatTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Backen:</strong> Maximale Hitze! Ergebnis: Mega bekömmlich & aromatisch.</span>
+            </div>
+        `;
+        document.getElementById('scheduleList').innerHTML = htmlTime;
+    }
+
+    // ==========================================
+    // SEMOLA - Der Grießteig
+    // ==========================================
+    function calculateSemola(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr) {
+        // Grießteig: Hauptsächlich Hartweizengrieß
+        const hydration = 0.60; // Semola nimmt weniger Wasser auf
+        const saltPct = 0.028;
+        const yeastPct = 0.004;
+        const oliveoilPct = 0.02;
+        const semolaPct = 0.60; // 60% Semola!
+
+        const totalDough = balls * weight;
+        const totalFlour = totalDough / (1 + hydration + saltPct + yeastPct + oliveoilPct);
+
+        const totalWater = totalFlour * hydration;
+        const totalSalt = totalFlour * saltPct;
+        const totalYeast = totalFlour * yeastPct;
+        const totalOil = totalFlour * oliveoilPct;
+
+        // Mehl aufteilen
+        const semola = totalFlour * semolaPct;
+        const mFlourWW = totalFlour * (wwPercent / 100);
+        const mFlour00 = totalFlour - semola - mFlourWW;
+
+        // --- TIMING ---
+        const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
+        const hoursOut = 3;
+        const takeOutTime = new Date(eatTime.getTime() - (hoursOut * 60 * 60 * 1000));
+
+        // Kalte Gare
+        const coldFermentHours = 22;
+        const kneadTime = new Date(eatTime.getTime() - (coldFermentHours * 60 * 60 * 1000));
+
+        // --- RENDER ---
+        let htmlIng = `
+            <div class="result-row"><span>Gesamtteig:</span> <span class="highlight">${format(totalDough)} g</span></div>
+            <div class="result-row" style="color: #8d6e63;"><span>Grießanteil:</span> <span class="highlight">60% Semola!</span></div>
+            <hr style="border-color:#444">
+            <h4>Zutaten</h4>
+            <div class="result-row"><span>Semola rimacinata:</span> <span class="highlight">${format(semola)} g</span></div>
+            <div class="result-row"><span>Mehl (Tipo 00):</span> <span>${format(mFlour00)} g</span></div>
+            ${wwPercent > 0 ? `<div class="result-row"><span>Mehl (Vollkorn):</span> <span>${format(mFlourWW)} g</span></div>` : ''}
+            <div class="result-row"><span>Wasser (Lauwarm, 30°C):</span> <span class="highlight">${format(totalWater)} ml</span></div>
+            <div class="result-row"><span>Olivenöl:</span> <span>${format(totalOil)} g</span></div>
+            <div class="result-row"><span>Salz:</span> <span>${format(totalSalt)} g</span></div>
+            <div class="result-row"><span>Hefe (Frisch):</span> <span>${format(totalYeast)} g</span></div>
+            <div class="note">(Oder ${format(totalYeast/3)}g Trockenhefe)</div>
+            <div class="note" style="margin-top:10px; color: #8d6e63; padding: 8px; background: #352d2a; border-radius: 4px;">
+                <strong>Tipp:</strong> Semola rimacinata (fein gemahlen) verwenden, nicht groben Grieß! Ergibt goldgelbe, nussige Pizza.
+            </div>
+        `;
+        document.getElementById('ingredientsList').innerHTML = htmlIng;
+
+        let htmlTime = `
+            <div class="result-row">
+                <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Teig kneten:</strong> Mehle mischen, Wasser + Hefe dazu. Semola braucht etwas länger zum Quellen!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 10 min</span>
+                <span><strong>Ruhe (Autolyse):</strong> 10min stehen lassen - Semola quillt nach.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 10 min</span>
+                <span><strong>Weiterkneten:</strong> Öl + Salz dazu, kneten bis glatt (Teig ist gelblich!).</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 30 min</span>
+                <span><strong>Ballen formen:</strong> Nach kurzer Ruhe Ballen formen (${format(weight)}g).</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">Sofort</span>
+                <span><strong>Ab in die Kühlung:</strong> In Box, Kühlschrank.</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">~${coldFermentHours}h</span>
+                <span>Kalte Gare - Semola entwickelt nussiges Aroma</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${takeOutTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Rausholen:</strong> Akklimatisieren lassen.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${eatTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Backen:</strong> Ausformen & heiß backen. Ergebnis: Goldgelb & nussig!</span>
+            </div>
+            <div class="note" style="margin-top:15px; padding: 10px; background: #352d2a; border-radius: 6px;">
+                <strong>Typisch für Grießteig:</strong><br>
+                • Goldgelbe Farbe (vom Hartweizen)<br>
+                • Nussig-süßliches Aroma<br>
+                • Etwas festere Konsistenz<br>
+                • Perfekt für rustikale Beläge (Salsiccia, Friarielli...)
             </div>
         `;
         document.getElementById('scheduleList').innerHTML = htmlTime;
