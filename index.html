@@ -157,6 +157,57 @@
         semola: '<strong>Grießteig:</strong> 60% Hartweizengrieß für nussiges Aroma & goldene Farbe. Rustikaler süditalienischer Stil. Etwas fester, sehr aromatisch!'
     };
 
+    // ==========================================
+    // URL Parameter Management
+    // ==========================================
+    function updateURL() {
+        const params = new URLSearchParams();
+        params.set('recipe', currentRecipe);
+        params.set('balls', document.getElementById('balls').value);
+        params.set('weight', document.getElementById('weight').value);
+        params.set('ww', document.getElementById('wholeWheat').value);
+        params.set('temp', document.getElementById('roomTemp').value);
+        params.set('date', document.getElementById('targetDate').value);
+        params.set('time', document.getElementById('targetTime').value);
+
+        const newURL = window.location.pathname + '?' + params.toString();
+        history.replaceState(null, '', newURL);
+    }
+
+    function loadFromURL() {
+        const params = new URLSearchParams(window.location.search);
+
+        // Rezept
+        const recipe = params.get('recipe');
+        if (recipe && recipeDescriptions[recipe]) {
+            currentRecipe = recipe;
+            document.querySelectorAll('.recipe-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.recipe === recipe);
+            });
+            const descEl = document.getElementById('recipeDesc');
+            descEl.innerHTML = recipeDescriptions[recipe];
+            descEl.className = 'recipe-desc ' + recipe;
+        }
+
+        // Numerische Werte
+        if (params.get('balls')) document.getElementById('balls').value = params.get('balls');
+        if (params.get('weight')) document.getElementById('weight').value = params.get('weight');
+        if (params.get('ww')) document.getElementById('wholeWheat').value = params.get('ww');
+        if (params.get('temp')) document.getElementById('roomTemp').value = params.get('temp');
+
+        // Datum - wenn vorhanden aus URL, sonst "Morgen"
+        if (params.get('date')) {
+            document.getElementById('targetDate').value = params.get('date');
+        } else {
+            const tmr = new Date();
+            tmr.setDate(tmr.getDate() + 1);
+            document.getElementById('targetDate').valueAsDate = tmr;
+        }
+
+        // Zeit
+        if (params.get('time')) document.getElementById('targetTime').value = params.get('time');
+    }
+
     function setRecipe(recipe) {
         currentRecipe = recipe;
         // Update Tabs
@@ -167,14 +218,12 @@
         const descEl = document.getElementById('recipeDesc');
         descEl.innerHTML = recipeDescriptions[recipe];
         descEl.className = 'recipe-desc ' + recipe;
-        // Neuberechnung
+        // Neuberechnung (inkl. URL update)
         calculate();
     }
 
-    // Initialisiere Datum auf "Morgen"
-    const tmr = new Date();
-    tmr.setDate(tmr.getDate() + 1);
-    document.getElementById('targetDate').valueAsDate = tmr;
+    // Initialisierung: Aus URL laden oder Defaults
+    loadFromURL();
 
     function calculate() {
         // --- INPUTS ---
@@ -187,6 +236,9 @@
         const targetTimeStr = document.getElementById('targetTime').value;
 
         if(!balls || !weight || !targetDateStr || !targetTimeStr) return;
+
+        // URL aktualisieren
+        updateURL();
 
         // Je nach Rezept verschiedene Berechnungen
         switch(currentRecipe) {
