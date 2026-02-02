@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pizza Teig Rechner</title>
     <style>
-        :root { --bg: #1e1e1e; --card: #2d2d2d; --text: #e0e0e0; --accent: #4caf50; --danger: #ff5252; --biga: #ff9800; --roma: #e91e63; --quick: #2196f3; }
+        :root { --bg: #1e1e1e; --card: #2d2d2d; --text: #e0e0e0; --accent: #4caf50; --danger: #ff5252; --biga: #ff9800; --roma: #e91e63; --quick: #2196f3; --crispy: #ffc107; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
         .container { max-width: 800px; margin: 0 auto; }
         h1, h2, h3 { color: var(--accent); }
@@ -42,6 +42,7 @@
         .recipe-tab[data-recipe="biga"].active { border-color: var(--biga); background: rgba(255, 152, 0, 0.15); }
         .recipe-tab[data-recipe="roma"].active { border-color: var(--roma); background: rgba(233, 30, 99, 0.15); }
         .recipe-tab[data-recipe="quick"].active { border-color: var(--quick); background: rgba(33, 150, 243, 0.15); }
+        .recipe-tab[data-recipe="crispy"].active { border-color: var(--crispy); background: rgba(255, 193, 7, 0.15); }
 
         .recipe-desc {
             font-size: 0.85em;
@@ -55,6 +56,7 @@
         .recipe-desc.biga { border-left-color: var(--biga); }
         .recipe-desc.roma { border-left-color: var(--roma); }
         .recipe-desc.quick { border-left-color: var(--quick); }
+        .recipe-desc.crispy { border-left-color: var(--crispy); }
     </style>
 </head>
 <body>
@@ -76,6 +78,9 @@
             </button>
             <button class="recipe-tab" data-recipe="quick" onclick="setRecipe('quick')">
                 ⚡ Schnell<br><small>Wenig Zeit?</small>
+            </button>
+            <button class="recipe-tab" data-recipe="crispy" onclick="setRecipe('crispy')">
+                🥨 Croccante<br><small>Extra knusprig</small>
             </button>
         </div>
         <div id="recipeDesc" class="recipe-desc">
@@ -136,7 +141,8 @@
         poolish: '<strong>Poolish:</strong> Flüssiger Vorteig (100% Hydration). 3-4h Vorteig + Übernacht-Gare. Der Standard für aromatische, gut verdauliche Pizza.',
         biga: '<strong>Biga:</strong> Fester Vorteig (50% Hydration). 12-16h Reifezeit. Noch mehr Aroma und Komplexität. Perfekt wenn du am Vorabend schon Zeit hast.',
         roma: '<strong>Römischer Teig:</strong> Hohe Hydration (75%), lange Gare. Ergibt knusprige, luftige Pizza alla Romana / Pinsa-Style. Braucht Übung beim Formen!',
-        quick: '<strong>Schnell-Teig:</strong> Direktteig ohne Vorteig. In 4-6h fertig. Für spontane Pizza-Gelüste. Weniger komplex im Geschmack, aber trotzdem lecker!'
+        quick: '<strong>Schnell-Teig:</strong> Direktteig ohne Vorteig. In 4-6h fertig. Für spontane Pizza-Gelüste. Weniger komplex im Geschmack, aber trotzdem lecker!',
+        crispy: '<strong>Croccante:</strong> Niedriger Wasseranteil (55%) + Semola + Olivenöl = mega knuspriger Boden! Perfekt für dünne, crackende Pizza. Dünn ausrollen!'
     };
 
     function setRecipe(recipe) {
@@ -183,6 +189,9 @@
                 break;
             case 'quick':
                 calculateQuick(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
+                break;
+            case 'crispy':
+                calculateCrispy(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
                 break;
         }
     }
@@ -542,6 +551,99 @@
             </div>
             <div class="note" style="margin-top:15px; padding: 10px; background: #2a3a4a; border-radius: 6px;">
                 <strong>Tipp für mehr Geschmack:</strong> 1 EL Olivenöl und 1 TL Honig dazu = bessere Kruste!
+            </div>
+        `;
+        document.getElementById('scheduleList').innerHTML = htmlTime;
+    }
+
+    // ==========================================
+    // CRISPY - Der Knusprige Boden
+    // ==========================================
+    function calculateCrispy(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr) {
+        // Croccante: Niedriger Wasseranteil, Semola, Olivenöl
+        const hydration = 0.55; // Wenig Wasser = knusprig
+        const saltPct = 0.025;
+        const yeastPct = 0.004;
+        const oliveoilPct = 0.04; // Mehr Öl für Crunch
+        const semolaPct = 0.15; // 15% Semola für Textur
+
+        const totalDough = balls * weight;
+        const totalFlour = totalDough / (1 + hydration + saltPct + yeastPct + oliveoilPct);
+
+        const totalWater = totalFlour * hydration;
+        const totalSalt = totalFlour * saltPct;
+        const totalYeast = totalFlour * yeastPct;
+        const totalOil = totalFlour * oliveoilPct;
+
+        // Mehl aufteilen
+        const semola = totalFlour * semolaPct;
+        const mFlourWW = totalFlour * (wwPercent / 100);
+        const mFlour00 = totalFlour - semola - mFlourWW;
+
+        // --- TIMING ---
+        const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
+        const hoursOut = 2.5; // Kürzere Akklimatisierung wegen festem Teig
+        const takeOutTime = new Date(eatTime.getTime() - (hoursOut * 60 * 60 * 1000));
+
+        // Kühlschrankgare: 18-24h
+        const coldFermentHours = 20;
+        const kneadTime = new Date(eatTime.getTime() - (coldFermentHours * 60 * 60 * 1000));
+
+        // --- RENDER ---
+        let htmlIng = `
+            <div class="result-row"><span>Gesamtteig:</span> <span class="highlight">${format(totalDough)} g</span></div>
+            <div class="result-row" style="color: #ffc107;"><span>Hydration:</span> <span class="highlight">55% - Fester Teig!</span></div>
+            <hr style="border-color:#444">
+            <h4>Zutaten</h4>
+            <div class="result-row"><span>Mehl (Tipo 00):</span> <span>${format(mFlour00)} g</span></div>
+            <div class="result-row"><span>Semola rimacinata:</span> <span class="highlight">${format(semola)} g</span></div>
+            ${wwPercent > 0 ? `<div class="result-row"><span>Mehl (Vollkorn):</span> <span>${format(mFlourWW)} g</span></div>` : ''}
+            <div class="result-row"><span>Wasser (Kalt, 10-12°C):</span> <span>${format(totalWater)} ml</span></div>
+            <div class="result-row"><span>Olivenöl (Extra Vergine):</span> <span class="highlight">${format(totalOil)} g</span></div>
+            <div class="result-row"><span>Salz:</span> <span>${format(totalSalt)} g</span></div>
+            <div class="result-row"><span>Hefe (Frisch):</span> <span>${format(totalYeast)} g</span></div>
+            <div class="note">(Oder ${format(totalYeast/3)}g Trockenhefe)</div>
+            <div class="note" style="margin-top:10px; color: #ffc107; padding: 8px; background: #3a3520; border-radius: 4px;">
+                <strong>Geheimnis:</strong> Semola + niedriger Wassergehalt + Öl = Cracker-Effekt beim Backen!
+            </div>
+        `;
+        document.getElementById('ingredientsList').innerHTML = htmlIng;
+
+        let htmlTime = `
+            <div class="result-row">
+                <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Teig kneten:</strong> Mehle mischen, Wasser + Hefe dazu. Kneten, dann Öl einarbeiten, dann Salz.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 10 min</span>
+                <span><strong>Intensiv kneten:</strong> Teig ist fest - länger kneten bis glatt & geschmeidig (10-12min)!</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">+ 20 min</span>
+                <span><strong>Ruhe:</strong> Kurze Teigruhe, dann Ballen formen (${format(weight)}g).</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">Sofort</span>
+                <span><strong>Ab in die Kühlung:</strong> Leicht einölen, in Box, Kühlschrank.</span>
+            </div>
+            <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
+                <span class="step-time">~${coldFermentHours}h</span>
+                <span>Kalte Gare - Teig entwickelt Geschmack & wird geschmeidig</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${takeOutTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Rausholen:</strong> Nur kurz akklimatisieren - fester Teig braucht weniger.</span>
+            </div>
+            <div class="result-row">
+                <span class="step-time">${eatTime.toLocaleTimeString('de-DE', timeOpt)}</span>
+                <span><strong>Backen:</strong> DÜNN ausrollen! In reichlich Semola, maximal heiß backen.</span>
+            </div>
+            <div class="note" style="margin-top:15px; padding: 10px; background: #3a3520; border-radius: 6px;">
+                <strong>Profi-Tipps für Crunch:</strong><br>
+                • Nudelholz erlaubt - so dünn wie möglich!<br>
+                • Ofen auf Maximum (mind. 280°C besser mehr)<br>
+                • Pizza direkt auf heißen Stein/Stahl<br>
+                • Weniger Belag = mehr Knusper
             </div>
         `;
         document.getElementById('scheduleList').innerHTML = htmlTime;
