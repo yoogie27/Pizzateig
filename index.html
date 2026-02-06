@@ -140,6 +140,11 @@
         <h2>3. Der Zeitplan (Rückwärts gerechnet)</h2>
         <div id="scheduleList"></div>
     </div>
+
+    <div class="card" style="border-left: 3px solid #ff5722;">
+        <h2 style="color: #ff5722;">4. Die Soße (NY/Roma Style)</h2>
+        <div id="sauceList"></div>
+    </div>
 </div>
 
 <script>
@@ -264,6 +269,9 @@
                 calculateSemola(balls, weight, wwPercent, roomTemp, targetDateStr, targetTimeStr);
                 break;
         }
+
+        // Soße berechnen (für alle Rezepte gleich)
+        calculateSauce(balls);
     }
 
     // Hilfsfunktionen
@@ -918,6 +926,65 @@
             </div>
         `;
         document.getElementById('scheduleList').innerHTML = htmlTime;
+    }
+
+    // ==========================================
+    // PIZZASOSSE - NY/Roma Style
+    // ==========================================
+    function calculateSauce(pizzaCount) {
+        // Basis: 13 Pizzen = 6 Dosen, ~90g Soße pro Pizza
+        const factor = pizzaCount / 13;
+
+        // Zutaten berechnen (Basis für 13 Pizzen)
+        const dosen = Math.ceil(6 * factor);
+        const zwiebeln = factor; // 1 große Zwiebel für 13
+        const knoblauch = Math.round(4.5 * factor);
+        const olivenoel = Math.round(4 * factor);
+        const tomatenmark = Math.round(2 * factor);
+        const oregano = Math.round(2.5 * factor * 10) / 10;
+        const zucker = Math.round(2 * factor * 10) / 10;
+        const chili = Math.round(1 * factor * 10) / 10;
+
+        // Zwiebel-Text
+        let zwiebelText;
+        if (zwiebeln < 0.5) zwiebelText = '½ kleine Zwiebel';
+        else if (zwiebeln < 1) zwiebelText = '1 kleine Zwiebel';
+        else if (zwiebeln < 1.5) zwiebelText = '1 große Zwiebel';
+        else if (zwiebeln < 2) zwiebelText = '1½ große Zwiebeln';
+        else zwiebelText = `${Math.round(zwiebeln)} große Zwiebeln`;
+
+        let html = `
+            <div class="result-row"><span>Soße für:</span> <span class="highlight">${pizzaCount} Pizzen (~${pizzaCount * 90}g)</span></div>
+            <hr style="border-color:#444">
+            <h4>Zutaten</h4>
+            <div class="result-row"><span>San Marzano Tomaten (abgetropft!):</span> <span class="highlight">${dosen} Dose${dosen > 1 ? 'n' : ''}</span></div>
+            <div class="result-row"><span>Zwiebel (fein gewürfelt):</span> <span>${zwiebelText}</span></div>
+            <div class="result-row"><span>Knoblauch (gepresst):</span> <span>${knoblauch} Zehe${knoblauch > 1 ? 'n' : ''}</span></div>
+            <div class="result-row"><span>Olivenöl:</span> <span>${olivenoel} EL</span></div>
+            <div class="result-row"><span>Tomatenmark:</span> <span>${tomatenmark} EL</span></div>
+            <div class="result-row"><span>Oregano / Pizza-Kräuter:</span> <span class="highlight">${oregano} TL</span></div>
+            <div class="result-row"><span>Zucker:</span> <span>${zucker} TL</span></div>
+            <div class="result-row"><span>Salz & Pfeffer:</span> <span>nach Geschmack</span></div>
+            <div class="result-row" style="color:#888"><span>Optional: Chiliflocken:</span> <span>${chili} TL</span></div>
+
+            <h4 style="margin-top:15px">Zubereitung</h4>
+            <div class="result-row">
+                <span><strong>1. Anschwitzen:</strong> Öl erhitzen, Zwiebeln glasig dünsten (~5 Min), Knoblauch + Tomatenmark kurz mitrösten (~1 Min).</span>
+            </div>
+            <div class="result-row">
+                <span><strong>2. Tomaten:</strong> Abgetropfte Tomaten dazu, mit Löffel grob zerstoßen.</span>
+            </div>
+            <div class="result-row">
+                <span><strong>3. Würzen:</strong> Oregano, Zucker, Salz, Pfeffer (& Chili) einrühren.</span>
+            </div>
+            <div class="result-row">
+                <span><strong>4. Köcheln:</strong> 15-20 Min sanft köcheln lassen. Optional pürieren.</span>
+            </div>
+            <div class="note" style="margin-top:10px; color: #ff5722; padding: 8px; background: #3a2520; border-radius: 4px;">
+                <strong>Wichtig:</strong> Vor dem Belegen abkühlen lassen! Heiße Soße macht den Teig matschig.
+            </div>
+        `;
+        document.getElementById('sauceList').innerHTML = html;
     }
 
     // Initiale Berechnung
