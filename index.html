@@ -21,6 +21,20 @@
         .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 10px; }
         .btn:hover { opacity: 0.9; }
         .note { font-size: 0.85em; color: #888; margin-top: 5px; }
+        .pizza-classic { background: #353535; padding: 14px; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid #555; }
+        .pizza-classic h4 { margin: 0 0 8px 0; font-size: 1rem; }
+        .pizza-classic .belag { font-size: 0.9em; color: #ccc; }
+        .pizza-classic .tipp { font-size: 0.82em; color: #ff9800; margin-top: 6px; }
+        .cheese-item { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid #3a3a3a; }
+        .cheese-item:last-child { border-bottom: none; }
+        .cheese-name { font-weight: bold; color: #ffc107; min-width: 160px; }
+        .cheese-desc { color: #bbb; font-size: 0.9em; text-align: right; }
+        .layer-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+        .layer-num { background: #4caf50; color: #1e1e1e; font-weight: bold; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85em; }
+        .section-divider { border: none; border-top: 2px solid #444; margin: 25px 0; }
+        .tag-veg { background: #2e7d32; color: white; font-size: 0.7em; padding: 2px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+        .tag-meat { background: #c62828; color: white; font-size: 0.7em; padding: 2px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+        .tag-fish { background: #1565c0; color: white; font-size: 0.7em; padding: 2px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
 
         /* Rezept-Tabs */
         .recipe-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
@@ -144,6 +158,249 @@
     <div class="card" style="border-left: 3px solid #ff5722;">
         <h2 style="color: #ff5722;">4. Die Soße (NY/Roma Style)</h2>
         <div id="sauceList"></div>
+    </div>
+
+    <div class="card" style="border-left: 3px solid #ffc107;">
+        <h2 style="color: #ffc107;">5. Belag-Guide: Richtig belegen</h2>
+
+        <!-- Reihenfolge -->
+        <h3 style="color: #e0e0e0; margin-top: 5px;">Die richtige Schichtung</h3>
+        <p class="note" style="margin-bottom: 12px;">Die Reihenfolge entscheidet, ob der Belag verbrennt oder der Boden matschig wird!</p>
+
+        <div style="background: #252525; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+            <strong style="color: #4caf50;">Neapolitanisch (Klassisch)</strong>
+            <div class="layer-step"><span class="layer-num">1</span> <span>Soße direkt auf den Teig (duenn! ~60-80g)</span></div>
+            <div class="layer-step"><span class="layer-num">2</span> <span>Mozzarella (gerissen, nicht gerieben) drauf verteilen</span></div>
+            <div class="layer-step"><span class="layer-num">3</span> <span>Belag obendrauf (Salami, Pilze etc.)</span></div>
+            <div class="layer-step"><span class="layer-num">4</span> <span>Olivenoel drueber + nach dem Backen: frisches Basilikum, Parmesan</span></div>
+        </div>
+
+        <div style="background: #252525; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+            <strong style="color: #2196f3;">NY Style (Kaese-Schutz)</strong>
+            <div class="layer-step"><span class="layer-num">1</span> <span>Soße auf den Teig</span></div>
+            <div class="layer-step"><span class="layer-num">2</span> <span>Belag (Pepperoni, Gemuese etc.) auf die Soße</span></div>
+            <div class="layer-step"><span class="layer-num">3</span> <span>Kaese oben drueber - schuetzt den Belag vorm Verbrennen</span></div>
+        </div>
+
+        <div style="background: #252525; padding: 14px; border-radius: 8px; margin-bottom: 15px;">
+            <strong style="color: #ff9800;">Bianca (Ohne Tomatensoße)</strong>
+            <div class="layer-step"><span class="layer-num">1</span> <span>Teig mit Knoblauchoel oder Creme fraiche bestreichen</span></div>
+            <div class="layer-step"><span class="layer-num">2</span> <span>Kaese (Mozzarella, Ricotta, Gorgonzola...)</span></div>
+            <div class="layer-step"><span class="layer-num">3</span> <span>Belag drauf (Kartoffeln, Speck, Pilze...)</span></div>
+            <div class="layer-step"><span class="layer-num">4</span> <span>Nach dem Backen: Rucola, Prosciutto, Trueffeloel</span></div>
+        </div>
+
+        <div class="note" style="padding: 10px; background: #3a3520; border-radius: 6px; margin-bottom: 20px; color: #ffc107;">
+            <strong>Goldene Regeln:</strong><br>
+            &bull; Feuchte Zutaten (Mozzarella, Tomaten) vorher abtropfen lassen!<br>
+            &bull; Weniger ist mehr - ueberladene Pizza = matschiger Boden<br>
+            &bull; Empfindliche Zutaten (Rucola, Prosciutto crudo, Burrata) NACH dem Backen drauf<br>
+            &bull; Hartes Gemuese (Paprika, Zwiebeln) vorher kurz anroesten oder duenn schneiden<br>
+            &bull; Max. 3-4 Belagzutaten pro Pizza - sonst kaempfen die Aromen gegeneinander
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Kaese-Guide -->
+        <h3 style="color: #ffc107;">Der Kaese-Guide</h3>
+        <p class="note" style="margin-bottom: 12px;">Der richtige Kaese macht 50% der Pizza aus. Hier die wichtigsten:</p>
+
+        <div class="cheese-item">
+            <span class="cheese-name">Fior di Latte</span>
+            <span class="cheese-desc">DER Standard. Mild, cremig, schmilzt perfekt. Vorher abtropfen!</span>
+        </div>
+        <div class="cheese-item">
+            <span class="cheese-name">Bueffelmozzarella</span>
+            <span class="cheese-desc">Intensiver, cremiger, mehr Fett. Edel-Upgrade. Sehr feucht - gut abtropfen!</span>
+        </div>
+        <div class="cheese-item">
+            <span class="cheese-name">Provolone (dolce)</span>
+            <span class="cheese-desc">Wuerzig-mild, zieht mega Faeden. Perfekt als Mix mit Mozzarella.</span>
+        </div>
+        <div class="cheese-item">
+            <span class="cheese-name">Parmigiano Reggiano</span>
+            <span class="cheese-desc">Umami-Bombe! Fein gerieben NACH dem Backen drueber. Nie als Hauptkaese.</span>
+        </div>
+        <div class="cheese-item">
+            <span class="cheese-name">Pecorino Romano</span>
+            <span class="cheese-desc">Salzig, scharf, kraeftig. Sparsam verwenden! Mega zu wuerzigen Pizzen.</span>
+        </div>
+        <div class="cheese-item">
+            <span class="cheese-name">Gorgonzola (dolce)</span>
+            <span class="cheese-desc">Cremig-wuerzig, Blauschimmel. Perfekt fuer Quattro Formaggi & Birne.</span>
+        </div>
+        <div class="cheese-item">
+            <span class="cheese-name">Ricotta</span>
+            <span class="cheese-desc">Loeffelweise draufsetzen. Cremig-mild, wird leicht braun. Top fuer Bianca.</span>
+        </div>
+        <div class="cheese-item">
+            <span class="cheese-name">Burrata</span>
+            <span class="cheese-desc">IMMER erst nach dem Backen! Aufschneiden, cremiger Kern laeuft aus. Wow-Effekt.</span>
+        </div>
+        <div class="cheese-item">
+            <span class="cheese-name">Scamorza (affumicata)</span>
+            <span class="cheese-desc">Geraeucherter Mozzarella. Rauchig-herzhaft. Mega zu Speck & Pilzen.</span>
+        </div>
+
+        <div class="note" style="padding: 10px; background: #3a3520; border-radius: 6px; margin-top: 12px; color: #ffc107;">
+            <strong>Profi-Kombis:</strong><br>
+            &bull; <strong>Mild & cremig:</strong> 70% Fior di Latte + 30% Provolone dolce<br>
+            &bull; <strong>Wuerzig & komplex:</strong> Fior di Latte + Pecorino-Raspel nach dem Backen<br>
+            &bull; <strong>Rauchig:</strong> Scamorza affumicata + Fior di Latte<br>
+            &bull; <strong>Luxus:</strong> Fior di Latte im Ofen, Burrata + Parmigiano nach dem Backen
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Klassiker Pizzen -->
+        <h3 style="color: #e0e0e0;">Klassiker-Pizzen, die mega schmecken</h3>
+
+        <h4 style="color: #2e7d32; margin-top: 15px; margin-bottom: 10px;">Vegetarisch</h4>
+
+        <div class="pizza-classic" style="border-left-color: #2e7d32;">
+            <h4>Margherita <span class="tag-veg">vegetarisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> San Marzano Sosse, Fior di Latte, frisches Basilikum, Olivenoel<br>
+                <strong>Schichtung:</strong> Sosse &rarr; Mozzarella &rarr; Backen &rarr; Basilikum + Olivenoel<br>
+            </div>
+            <div class="tipp">Die Koenigin. Weniger ist mehr. Qualitaet der Zutaten entscheidet alles!</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #2e7d32;">
+            <h4>Quattro Formaggi <span class="tag-veg">vegetarisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Fior di Latte, Gorgonzola dolce, Parmigiano, Provolone (oder Fontina)<br>
+                <strong>Schichtung:</strong> Duenne Sosse (oder Bianca!) &rarr; Mozzarella &rarr; Gorgonzola in Stueckchen &rarr; Provolone &rarr; Backen &rarr; Parmigiano drueber<br>
+            </div>
+            <div class="tipp">Gorgonzola sparsam - der dominiert schnell. Honig nach dem Backen = Game Changer!</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #2e7d32;">
+            <h4>Marinara <span class="tag-veg">vegetarisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> San Marzano Sosse, Knoblauch (in Scheiben), Oregano, Olivenoel<br>
+                <strong>Schichtung:</strong> Sosse &rarr; Knoblauchscheiben &rarr; Oregano &rarr; grosszuegig Olivenoel<br>
+            </div>
+            <div class="tipp">KEIN Kaese! Die purste Pizza. Zeigt die wahre Qualitaet von Teig und Sosse.</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #2e7d32;">
+            <h4>Funghi e Tartufo <span class="tag-veg">vegetarisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Fior di Latte, Champignons (duenn geschnitten), Steinpilze (optional), Trueffeloel oder Truffelcreme<br>
+                <strong>Schichtung:</strong> Sosse &rarr; Mozzarella &rarr; rohe Pilze duenn drauf &rarr; Backen &rarr; Trueffeloel<br>
+            </div>
+            <div class="tipp">Pilze DUENN schneiden, damit sie im Ofen Wasser verlieren und rousten. Trueffeloel immer erst nach dem Backen!</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #2e7d32;">
+            <h4>Ortolana (Gemuesepizza) <span class="tag-veg">vegetarisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Fior di Latte, Zucchini, Aubergine, Paprika, Kirschtomaten<br>
+                <strong>Schichtung:</strong> Sosse &rarr; Mozzarella &rarr; gegrilltes Gemuese (vorher anbraten!) &rarr; Kirschtomaten halbiert<br>
+            </div>
+            <div class="tipp">Gemuese VORHER in der Pfanne anroesten mit Olivenoel! Rohes Gemuese = waessrige Pizza.</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #2e7d32;">
+            <h4>Burrata e Pomodorini <span class="tag-veg">vegetarisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Fior di Latte (wenig), Kirschtomaten, Burrata, Rucola, Parmigiano<br>
+                <strong>Schichtung:</strong> Sosse &rarr; wenig Mozzarella &rarr; halbierte Kirschtomaten &rarr; Backen &rarr; Burrata in Mitte, Rucola, Parmesan-Raspel, Olivenoel<br>
+            </div>
+            <div class="tipp">Burrata 10 Min vorher aus dem Kuehlschrank nehmen. Auf die heisse Pizza setzen & aufschneiden. Spektakulaer!</div>
+        </div>
+
+        <h4 style="color: #c62828; margin-top: 25px; margin-bottom: 10px;">Mit Fleisch & Fisch</h4>
+
+        <div class="pizza-classic" style="border-left-color: #c62828;">
+            <h4>Diavola / Pepperoni <span class="tag-meat">Fleisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Sosse, Fior di Latte, scharfe Salami (Spianata Calabrese oder Pepperoni), Chiliflocken<br>
+                <strong>Schichtung:</strong> Sosse &rarr; Mozzarella &rarr; Salami-Scheiben drueber verteilen &rarr; Backen &rarr; Chiliflocken<br>
+            </div>
+            <div class="tipp">Salami OBEN auf den Kaese! So wird sie kross und die Raender cuppen sich zu kleinen Fettschaelchen. Das Fett tropft auf den Kaese = mega Geschmack.</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #c62828;">
+            <h4>Prosciutto e Funghi <span class="tag-meat">Fleisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Sosse, Fior di Latte, Champignons, Prosciutto cotto (gekochter Schinken)<br>
+                <strong>Schichtung:</strong> Sosse &rarr; Mozzarella &rarr; Pilze (duenn!) &rarr; Schinken in Stuecken &rarr; Backen<br>
+            </div>
+            <div class="tipp">Fuer die Luxus-Version: Prosciutto CRUDO (roh) erst NACH dem Backen drauflegen, damit er nicht austrocknet!</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #c62828;">
+            <h4>Capricciosa <span class="tag-meat">Fleisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Sosse, Fior di Latte, Champignons, Artischockenherzen, gekochter Schinken, schwarze Oliven<br>
+                <strong>Schichtung:</strong> Sosse &rarr; Mozzarella &rarr; Artischocken + Pilze + Schinken in Vierteln verteilt &rarr; Oliven &rarr; Backen<br>
+            </div>
+            <div class="tipp">Traditionell wird jede Zutat auf ein Viertel gelegt. Artischocken aus dem Glas gut abtropfen!</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #c62828;">
+            <h4>Salsiccia e Friarielli <span class="tag-meat">Fleisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Fior di Latte (oder Scamorza), Salsiccia (ital. Bratwurst), Friarielli (Stängelkohl/Brokkoli-Rabe), Chiliflocken<br>
+                <strong>Schichtung:</strong> Sosse (wenig!) &rarr; Kaese &rarr; Salsiccia (aus Haut druecken, in Stueckchen) &rarr; vorgekochte Friarielli &rarr; Backen &rarr; Chili<br>
+            </div>
+            <div class="tipp">Friarielli vorher 5 Min in Knoblauch-Olivenoel anbraten! Kein Friarielli? Brokkoli oder Rapini geht auch. Salsiccia roh drauf - gart im Ofen.</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #c62828;">
+            <h4>Speck, Kartoffel & Rosmarino <span class="tag-meat">Fleisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Fior di Latte, Kartoffeln (hauchdünn), Suedtiroler Speck (oder Pancetta), Rosmarin, Parmigiano<br>
+                <strong>Schichtung:</strong> Bianca (kein Tomatensosse!) - Mozzarella &rarr; Kartoffelscheiben (vorgegart!) &rarr; Speck &rarr; Rosmarin &rarr; Backen &rarr; Parmesan<br>
+            </div>
+            <div class="tipp">Kartoffeln auf der Mandoline hauchdünn schneiden und 3 Min vorkochen oder mit Olivenoel marinieren. Sonst werden sie nicht gar!</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #1565c0;">
+            <h4>Tonno e Cipolla <span class="tag-fish">Fisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Sosse, Fior di Latte, Thunfisch (aus der Dose, abgetropft), rote Zwiebeln, Kapern<br>
+                <strong>Schichtung:</strong> Sosse &rarr; Mozzarella &rarr; Thunfisch (zerbroeckelt) &rarr; Zwiebelringe &rarr; Kapern &rarr; Backen<br>
+            </div>
+            <div class="tipp">Zwiebeln in duenne Ringe schneiden. Thunfisch in Olivenoel (nicht in Wasser!) hat mehr Geschmack. Kapern sparsam!</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #c62828;">
+            <h4>BBQ Chicken <span class="tag-meat">Fleisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> BBQ-Sosse (statt Tomatensosse!), Fior di Latte, gegrillte Haehnchenbrust, rote Zwiebeln, Koriander frisch<br>
+                <strong>Schichtung:</strong> BBQ-Sosse &rarr; Mozzarella &rarr; Haehnchen (vorgekocht, in Stuecken) &rarr; Zwiebelringe &rarr; Backen &rarr; frischer Koriander<br>
+            </div>
+            <div class="tipp">Haehnchen VORHER grillen/braten und in BBQ-Sosse wenden. Roh aufs Pizza legen = trocken & zaeh.</div>
+        </div>
+
+        <div class="pizza-classic" style="border-left-color: #c62828;">
+            <h4>Nduja & Burrata <span class="tag-meat">Fleisch</span></h4>
+            <div class="belag">
+                <strong>Belag:</strong> Sosse, Fior di Latte (wenig), Nduja (streichfaehige Salami), Burrata, Basilikum<br>
+                <strong>Schichtung:</strong> Sosse &rarr; wenig Mozzarella &rarr; Nduja in kleinen Klecksen verteilen &rarr; Backen &rarr; Burrata in die Mitte, Basilikum<br>
+            </div>
+            <div class="tipp">Nduja zerlaeuft beim Backen und faerbt alles orange-scharf. Burrata erst NACH dem Backen - der cremige Kern balanciert die Schaerfe perfekt.</div>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Profi-Tipps -->
+        <h3 style="color: #ff9800;">Profi-Tipps auf einen Blick</h3>
+
+        <div style="background: #252525; padding: 14px; border-radius: 8px; font-size: 0.9em;">
+            <p style="margin: 0 0 10px 0;"><strong style="color: #ff5252;">Feuchtigkeitskiller:</strong> Mozzarella mind. 30 Min abtropfen (am besten in Sieb). Jede Feuchtigkeit = matschiger Boden.</p>
+
+            <p style="margin: 0 0 10px 0;"><strong style="color: #4caf50;">Weniger Sosse:</strong> 60-80g pro Pizza reichen! Duenn mit Loeffelruecken in Spirale verteilen. Rand freilassen (~2cm).</p>
+
+            <p style="margin: 0 0 10px 0;"><strong style="color: #2196f3;">Hitze nutzen:</strong> Je heisser der Ofen, desto weniger Zeit, desto weniger Feuchtigkeit, desto knuspriger. Minimum 280 Grad C, ideal 350 Grad C+.</p>
+
+            <p style="margin: 0 0 10px 0;"><strong style="color: #ffc107;">Nach dem Backen:</strong> Sofort frische Kraeuter, rohes Prosciutto, Burrata, Rucola, Trueffeloel, Parmesan drauf - solange die Pizza heiss ist.</p>
+
+            <p style="margin: 0;"><strong style="color: #9c27b0;">Geheimwaffe:</strong> Ein Faden hochwertiges Olivenoel und eine Prise Fleur de Sel direkt nach dem Backen auf jede Pizza. Macht jede Pizza 2x so gut.</p>
+        </div>
     </div>
 </div>
 
