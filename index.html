@@ -438,7 +438,7 @@
     // Rezept-Beschreibungen
     const recipeDescriptions = {
         poolish: '<strong>Poolish:</strong> Flüssiger Vorteig (100% Hydration). 3-4h Vorteig + Übernacht-Gare. Der Standard für aromatische, gut verdauliche Pizza.',
-        biga: '<strong>Biga:</strong> Fester Vorteig (50% Hydration). 12-16h Reifezeit. Noch mehr Aroma und Komplexität. Perfekt wenn du am Vorabend schon Zeit hast.',
+        biga: '<strong>Biga:</strong> Fester Vorteig (50% Hydration). 12-16h Reifezeit. Noch mehr Aroma &amp; Komplexität. <em>Wichtig: Hefe wird automatisch an Raumtemperatur angepasst &ndash; ideal 16-18°C (Keller!).</em>',
         roma: '<strong>Römischer Teig:</strong> Hohe Hydration (75%), lange Gare. Ergibt knusprige, luftige Pizza alla Romana / Pinsa-Style. Braucht Übung beim Formen!',
         quick: '<strong>Schnell-Teig:</strong> Direktteig ohne Vorteig. In 4-6h fertig. Für spontane Pizza-Gelüste. Weniger komplex im Geschmack, aber trotzdem lecker!',
         crispy: '<strong>Croccante:</strong> Niedriger Wasseranteil (55%) + Semola + Olivenöl = mega knuspriger Boden! Perfekt für dünne, crackende Pizza. Dünn ausrollen!',
@@ -758,17 +758,24 @@
         // Biga: Fester Vorteig mit 50% Hydration, 40% des Mehls
         const hydration = 0.65;
         const saltPct = 0.03;
-        const yeastPct = 0.003; // Weniger Hefe wegen längerer Gare
-        const bigaFlourPct = 0.40; // Mehr Mehl im Vorteig
-        const bigaHydration = 0.50; // Fester als Poolish
+        const bigaFlourPct = 0.40;
+        const bigaHydration = 0.50;
         const oilPct = getOilPct('biga');
+
+        // Biga-Hefe: TEMPERATURABHAENGIG!
+        // Referenz: 1% bei 16°C (Keller/Cantina)
+        // Hefeaktivitaet verdoppelt sich ca. alle 3.5°C
+        // Bei 21°C: ~0.37%, bei 25°C: ~0.17%
+        const bigaRefTemp = 16;
+        const bigaBaseYeast = 0.01;
+        const yeastPct = bigaBaseYeast / Math.pow(2, (roomTemp - bigaRefTemp) / 3.5);
 
         // --- TIMING ---
         const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
         const hoursOut = 3.5;
         const takeOutTime = new Date(eatTime.getTime() - (hoursOut * H));
 
-        // Biga braucht 12-16h bei Raumtemperatur, oder kürzer bei wärmer
+        // Biga-Reifezeit: temperaturabhaengig
         let bigaHours = 14 * (21 / roomTemp);
         if(bigaHours < 8) bigaHours = 8;
         if(bigaHours > 18) bigaHours = 18;
@@ -791,13 +798,23 @@
         // Biga
         const bFlour = totalFlour * bigaFlourPct;
         const bWater = bFlour * bigaHydration;
-        const bYeast = totalYeast; // Alle Hefe in Biga
+        const bYeast = totalYeast;
 
         // Hauptteig
         const mFlourTotal = totalFlour - bFlour;
         const mFlourWW = totalFlour * (wwPercent / 100);
         const mFlour00 = mFlourTotal - mFlourWW;
         const mWater = totalWater - bWater;
+
+        // Temperatur-Hinweis fuer Biga
+        let bigaTempNote = '';
+        if (roomTemp <= 18) {
+            bigaTempNote = `<div class="note" style="color: #4caf50; padding: 8px; background: #1f3a1f; border-radius: 4px; margin-top: 8px;">&#10003; Perfekte Biga-Temperatur! ${format(roomTemp)}&deg;C = klassische Cantina-Bedingungen.</div>`;
+        } else if (roomTemp <= 22) {
+            bigaTempNote = `<div class="note" style="color: #ff9800; padding: 8px; background: #3a3520; border-radius: 4px; margin-top: 8px;">&#9888; Hefe auf <strong>${format(bYeast)}g</strong> reduziert (${format(yeastPct * 100 * adj.multiplier)}% statt 1%) wegen ${format(roomTemp)}&deg;C. Optimal w&auml;re 16&ndash;18&deg;C (Keller?).</div>`;
+        } else {
+            bigaTempNote = `<div class="note" style="color: #ff5252; padding: 8px; background: #3a2520; border-radius: 4px; margin-top: 8px;">&#9888; <strong>${format(roomTemp)}&deg;C ist warm!</strong> Hefe stark reduziert auf ${format(bYeast)}g. Falls m&ouml;glich: Biga in den Keller (16&ndash;18&deg;C) oder K&uuml;hlschrank (dann l&auml;nger reifen lassen).</div>`;
+        }
 
         // --- RENDER ---
         let htmlIng = `
@@ -808,6 +825,7 @@
             <div class="result-row"><span>Wasser (Lauwarm, ~25°C):</span> <span>${format(bWater)} ml</span></div>
             <div class="result-row"><span>Hefe (Frisch):</span> <span class="highlight">${format(bYeast)} g</span></div>
             <div class="note">(Oder ${format(bYeast/3)}g Trockenhefe) - Fest kneten bis homogen!</div>
+            ${bigaTempNote}
 
             <h4 style="margin-top:15px">2. Der Hauptteig (Finale)</h4>
             <div class="result-row"><span>Biga:</span> <span>Alles von oben (in Stücke reißen)</span></div>
@@ -822,11 +840,11 @@
         let htmlTime = `
             <div class="result-row">
                 <span class="step-time">${bigaStartTime.toLocaleTimeString('de-DE', timeOpt)}</span>
-                <span><strong>Biga ansetzen:</strong> Zutaten zu einem festen Teig kneten (~5min). In Schüssel abgedeckt bei RT.</span>
+                <span><strong>Biga ansetzen:</strong> Zutaten zu einem festen Teig kneten (~5min). ${roomTemp > 20 ? 'An den <strong>k&uuml;hlsten Ort</strong> stellen (Keller, Flur, Balkon)!' : 'Abgedeckt bei RT stehen lassen.'}</span>
             </div>
             <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
                 <span class="step-time">~${format(bigaHours)}h</span>
-                <span>Biga reift bei Raumtemperatur (verdoppelt sich, mit Blasen)</span>
+                <span>Biga reift${roomTemp > 20 ? ' - <strong>ideal 16&ndash;18&deg;C!</strong> Bei ' + format(roomTemp) + '&deg;C: k&uuml;hlen Raum nutzen' : ' bei Raumtemperatur'} (verdoppelt sich, mit Blasen)</span>
             </div>
             <div class="result-row">
                 <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
