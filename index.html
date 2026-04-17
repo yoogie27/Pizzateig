@@ -133,8 +133,17 @@
                 <input type="number" id="wholeWheat" value="10" oninput="calculate()">
             </div>
             <div>
-                <label>Raumtemperatur (°C)</label>
+                <label>Raumtemperatur (&deg;C)</label>
                 <input type="number" id="roomTemp" value="21" oninput="calculate()">
+            </div>
+            <div>
+                <label>Vorteig reift bei</label>
+                <select id="prefermentLoc" onchange="calculate()">
+                    <option value="room">Raumtemperatur</option>
+                    <option value="cellar">Keller (~16&deg;C)</option>
+                    <option value="fridge">K&uuml;hlschrank (~5&deg;C)</option>
+                </select>
+                <div class="note">F&uuml;r Biga &amp; Poolish</div>
             </div>
         </div>
         <br>
@@ -462,7 +471,8 @@
         const st = document.getElementById('startTime').value;
         if (sd) params.set('sdate', sd);
         if (st) params.set('stime', st);
-        if (document.getElementById('oliveOil').checked) params.set('oil', '1');
+        params.set('oil', document.getElementById('oliveOil').checked ? '1' : '0');
+        params.set('loc', document.getElementById('prefermentLoc').value);
 
         const newURL = window.location.pathname + '?' + params.toString();
         history.replaceState(null, '', newURL);
@@ -512,6 +522,12 @@
             document.getElementById('oliveOil').checked = oilParam === '1';
         } else {
             document.getElementById('oliveOil').checked = recipesWithOil.includes(currentRecipe);
+        }
+
+        // Vorteig-Ort
+        const locParam = params.get('loc');
+        if (locParam && ['room', 'cellar', 'fridge'].includes(locParam)) {
+            document.getElementById('prefermentLoc').value = locParam;
         }
     }
 
@@ -598,6 +614,17 @@
         return document.getElementById('oliveOil').checked;
     }
 
+    // Vorteig-Temperatur je nach gewaehltem Ort
+    function getPrefermentTemp() {
+        const loc = document.getElementById('prefermentLoc').value;
+        const roomTemp = parseFloat(document.getElementById('roomTemp').value);
+        switch(loc) {
+            case 'cellar': return 16;
+            case 'fridge': return 5;
+            default: return roomTemp;
+        }
+    }
+
     // Standard-Oelanteil je Rezept (wenn aktiviert)
     function getOilPct(recipe) {
         if (!isOilEnabled()) return 0;
@@ -667,7 +694,8 @@
         const hoursOut = 3.5;
         const takeOutTime = new Date(eatTime.getTime() - (hoursOut * H));
 
-        let poolishHours = 3 * (21 / roomTemp);
+        const prefTemp = getPrefermentTemp();
+        let poolishHours = 3 * (21 / prefTemp);
         if(poolishHours < 1.5) poolishHours = 1.5;
 
         const defaultKneadTime = new Date(eatTime.getTime() - (21.5 * H));
@@ -762,13 +790,20 @@
         const bigaHydration = 0.50;
         const oilPct = getOilPct('biga');
 
-        // Biga-Hefe: TEMPERATURABHAENGIG!
-        // Referenz: 1% bei 16°C (Keller/Cantina)
-        // Hefeaktivitaet verdoppelt sich ca. alle 3.5°C
-        // Bei 21°C: ~0.37%, bei 25°C: ~0.17%
-        const bigaRefTemp = 16;
-        const bigaBaseYeast = 0.01;
-        const yeastPct = bigaBaseYeast / Math.pow(2, (roomTemp - bigaRefTemp) / 3.5);
+        // Vorteig-Temperatur (Raum, Keller oder Kuehlschrank)
+        const prefTemp = getPrefermentTemp();
+        const prefLoc = document.getElementById('prefermentLoc').value;
+
+        // Biga-Hefe: 1% vom BIGA-Mehl bei <=18°C
+        // Ueber 18°C: Hefeaktivitaet verdoppelt sich ca. alle 2°C → Hefe halbieren
+        // bigaFlourPct=0.40, also 1% Biga-Mehl = 0.4% Gesamtmehl
+        const bigaRefYeast = bigaFlourPct * 0.01; // 0.4% vom Gesamtmehl
+        let yeastPct;
+        if (prefTemp <= 18) {
+            yeastPct = bigaRefYeast;
+        } else {
+            yeastPct = bigaRefYeast / Math.pow(2, (prefTemp - 18) / 2);
+        }
 
         // --- TIMING ---
         const eatTime = new Date(targetDateStr + 'T' + targetTimeStr);
@@ -776,9 +811,13 @@
         const takeOutTime = new Date(eatTime.getTime() - (hoursOut * H));
 
         // Biga-Reifezeit: temperaturabhaengig
-        let bigaHours = 14 * (21 / roomTemp);
-        if(bigaHours < 8) bigaHours = 8;
-        if(bigaHours > 18) bigaHours = 18;
+        let bigaHours;
+        if (prefTemp <= 8) {
+            bigaHours = 36;
+        } else {
+            bigaHours = 16 * (18 / prefTemp);
+            bigaHours = Math.max(8, Math.min(20, bigaHours));
+        }
 
         const defaultKneadTime = new Date(eatTime.getTime() - (21 * H));
         const defaultBigaStart = new Date(defaultKneadTime.getTime() - (bigaHours * H));
@@ -799,6 +838,7 @@
         const bFlour = totalFlour * bigaFlourPct;
         const bWater = bFlour * bigaHydration;
         const bYeast = totalYeast;
+        const bYeastPctOfBigaFlour = (bYeast / bFlour) * 100;
 
         // Hauptteig
         const mFlourTotal = totalFlour - bFlour;
@@ -806,14 +846,18 @@
         const mFlour00 = mFlourTotal - mFlourWW;
         const mWater = totalWater - bWater;
 
+        // Ort-Label fuer Anzeige
+        const locLabels = { room: 'Raumtemp. (' + format(roomTemp) + '&deg;C)', cellar: 'Keller (~16&deg;C)', fridge: 'K&uuml;hlschrank (~5&deg;C)' };
+        const locLabel = locLabels[prefLoc] || locLabels.room;
+
         // Temperatur-Hinweis fuer Biga
         let bigaTempNote = '';
-        if (roomTemp <= 18) {
-            bigaTempNote = `<div class="note" style="color: #4caf50; padding: 8px; background: #1f3a1f; border-radius: 4px; margin-top: 8px;">&#10003; Perfekte Biga-Temperatur! ${format(roomTemp)}&deg;C = klassische Cantina-Bedingungen.</div>`;
-        } else if (roomTemp <= 22) {
-            bigaTempNote = `<div class="note" style="color: #ff9800; padding: 8px; background: #3a3520; border-radius: 4px; margin-top: 8px;">&#9888; Hefe auf <strong>${format(bYeast)}g</strong> reduziert (${format(yeastPct * 100 * adj.multiplier)}% statt 1%) wegen ${format(roomTemp)}&deg;C. Optimal w&auml;re 16&ndash;18&deg;C (Keller?).</div>`;
+        if (prefTemp <= 18) {
+            bigaTempNote = `<div class="note" style="color: #4caf50; padding: 8px; background: #1f3a1f; border-radius: 4px; margin-top: 8px;">&#10003; ${locLabel}: ${format(bYeastPctOfBigaFlour)}% vom Biga-Mehl (${format(bFlour)}g) = ${format(bYeast)}g Hefe. Klassische Dosierung!</div>`;
+        } else if (prefTemp <= 22) {
+            bigaTempNote = `<div class="note" style="color: #ff9800; padding: 8px; background: #3a3520; border-radius: 4px; margin-top: 8px;">&#9888; ${locLabel}: Hefe auf <strong>${format(bYeast)}g</strong> reduziert (${format(bYeastPctOfBigaFlour)}% statt 1% vom Biga-Mehl). Tipp: Vorteig in den Keller stellen!</div>`;
         } else {
-            bigaTempNote = `<div class="note" style="color: #ff5252; padding: 8px; background: #3a2520; border-radius: 4px; margin-top: 8px;">&#9888; <strong>${format(roomTemp)}&deg;C ist warm!</strong> Hefe stark reduziert auf ${format(bYeast)}g. Falls m&ouml;glich: Biga in den Keller (16&ndash;18&deg;C) oder K&uuml;hlschrank (dann l&auml;nger reifen lassen).</div>`;
+            bigaTempNote = `<div class="note" style="color: #ff5252; padding: 8px; background: #3a2520; border-radius: 4px; margin-top: 8px;">&#9888; <strong>${format(prefTemp)}&deg;C ist zu warm!</strong> Hefe stark reduziert auf ${format(bYeast)}g (${format(bYeastPctOfBigaFlour)}% vom Biga-Mehl). Unbedingt Keller oder K&uuml;hlschrank nutzen!</div>`;
         }
 
         // --- RENDER ---
@@ -840,11 +884,11 @@
         let htmlTime = `
             <div class="result-row">
                 <span class="step-time">${bigaStartTime.toLocaleTimeString('de-DE', timeOpt)}</span>
-                <span><strong>Biga ansetzen:</strong> Zutaten zu einem festen Teig kneten (~5min). ${roomTemp > 20 ? 'An den <strong>k&uuml;hlsten Ort</strong> stellen (Keller, Flur, Balkon)!' : 'Abgedeckt bei RT stehen lassen.'}</span>
+                <span><strong>Biga ansetzen:</strong> Zutaten zu einem festen Teig kneten (~5min). Abgedeckt ${prefLoc === 'fridge' ? 'in den K&uuml;hlschrank' : prefLoc === 'cellar' ? 'in den Keller (~16&deg;C)' : 'bei Raumtemp.'} stellen.</span>
             </div>
             <div class="result-row" style="background: #3a3a3a; margin: 10px -5px;">
                 <span class="step-time">~${format(bigaHours)}h</span>
-                <span>Biga reift${roomTemp > 20 ? ' - <strong>ideal 16&ndash;18&deg;C!</strong> Bei ' + format(roomTemp) + '&deg;C: k&uuml;hlen Raum nutzen' : ' bei Raumtemperatur'} (verdoppelt sich, mit Blasen)</span>
+                <span>Biga reift bei ~${format(prefTemp)}&deg;C (${prefLoc === 'fridge' ? 'K&uuml;hlschrank' : prefLoc === 'cellar' ? 'Keller' : 'Raum'}) &ndash; verdoppelt sich, mit Blasen</span>
             </div>
             <div class="result-row">
                 <span class="step-time">${kneadTime.toLocaleTimeString('de-DE', timeOpt)}</span>
